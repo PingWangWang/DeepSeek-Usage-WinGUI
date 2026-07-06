@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Win32Resource>Icon.rc</Win32Resource>
+    <ApplicationTitle>DeepSeek Usage Dashboard</ApplicationTitle>
+    <ProductName>DeepSeek 用量分析</ProductName>
+    <Version>2.0.0</Version>
+    <Authors>PingWangWang</Authors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.2.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
+    <PackageReference Include="CommunityToolkit.Common" Version="8.2.2" />
+    <PackageReference Include="Windows.Win32" Version="1.0.0-preview.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- WPF Views -->
+    <Compile Update="Views\**\*.xaml.cs" DependentUpon="%(Filename).xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- 资源文件夹 -->
+    <Folder Include="Resources\" />
+    <Folder Include="Assets\" />
+  </ItemGroup>
+
+</Project>
