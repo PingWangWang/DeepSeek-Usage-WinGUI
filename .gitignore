@@ -6,6 +6,7 @@
 *~
 *.sublime-project
 *.sublime-workspace
+.vs/
 
 # OS
 .DS_Store
@@ -19,22 +20,23 @@ Thumbs.db
 .env
 .env.local
 
-# Go
+# .NET / C# / Visual Studio
 bin/
-dist/
+obj/
 *.exe
 *.dll
 *.so
 *.dylib
-
-# Frontend (Node.js)
-frontend/node_modules/
-frontend/dist/
-frontend/.nuxt/
-frontend/.cache/
+*.pdb
+*.user
+*.suo
+*.vcxproj.user
+packages/
+.nuget/
 
 # Build output
 build/
+dist/
 
 # Logs
 logs/
