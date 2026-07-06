@@ -62,6 +62,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useAppStore } from '@/stores/useAppStore'
+import { useDataStore } from '@/stores/useDataStore'
 import { api } from '@/api/backend'
 
 const appStore = useAppStore()
@@ -101,6 +102,9 @@ const saveToken = async () => {
     await api.updateToken(token.value)
     appStore.token = token.value
     showMessage('success', 'Token 保存成功')
+    // 保存Token后刷新仪表盘数据
+    const dataStore = useDataStore()
+    await dataStore.fetchDashboard(dataStore.selectedPeriod)
   } catch (error) {
     showMessage('error', 'Token 保存失败')
     console.error('Failed to update token:', error)

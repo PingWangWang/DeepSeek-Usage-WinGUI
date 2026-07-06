@@ -4,11 +4,15 @@ import {context} from '../models';
 
 export function CheckUpdate():Promise<any>;
 
+export function GetConfig():Promise<Record<string, any>>;
+
 export function GetDashboard(arg1:string):Promise<any>;
 
 export function GetVersion():Promise<string>;
 
 export function ImportKeyDetail(arg1:string):Promise<any>;
+
+export function SaveConfig(arg1:Record<string, any>):Promise<void>;
 
 export function SendSubscription(arg1:string):Promise<void>;
 

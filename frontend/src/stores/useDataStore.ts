@@ -55,11 +55,16 @@ export const useDataStore = defineStore('data', () => {
     loading.value = true
     error.value = null
     try {
-      // TODO: 调用后端 API
-      // const response = await window.go.main.App.GetDashboard(period)
-      // data.value = response
+      // 检查Wails绑定是否可用
+      if (!window.go?.main?.App?.GetDashboard) {
+        throw new Error('Wails binding not available')
+      }
+      const response = await window.go.main.App.GetDashboard(period)
+      data.value = response
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Unknown error'
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error'
+      error.value = errorMsg
+      console.error('Failed to fetch dashboard:', err)
     } finally {
       loading.value = false
     }

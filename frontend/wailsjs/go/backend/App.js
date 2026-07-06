@@ -6,6 +6,10 @@ export function CheckUpdate() {
   return window['go']['backend']['App']['CheckUpdate']();
 }
 
+export function GetConfig() {
+  return window['go']['backend']['App']['GetConfig']();
+}
+
 export function GetDashboard(arg1) {
   return window['go']['backend']['App']['GetDashboard'](arg1);
 }
@@ -16,6 +20,10 @@ export function GetVersion() {
 
 export function ImportKeyDetail(arg1) {
   return window['go']['backend']['App']['ImportKeyDetail'](arg1);
+}
+
+export function SaveConfig(arg1) {
+  return window['go']['backend']['App']['SaveConfig'](arg1);
 }
 
 export function SendSubscription(arg1) {

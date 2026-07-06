@@ -164,3 +164,38 @@ func (a *App) UpdateToken(token string) error {
 	return nil
 }
 
+// GetConfig 获取完整配置（用于前端恢复状态）
+func (a *App) GetConfig() map[string]interface{} {
+	return map[string]interface{}{
+		"token":                 a.config.Token,
+		"auto_refresh_interval": a.config.AutoRefreshInterval,
+		"theme":                 "light", // 主题由前端管理，这里返回默认值
+		"section_visible":       a.config.SectionVisible,
+	}
+}
+
+// SaveConfig 保存配置（前端批量更新配置时调用）
+func (a *App) SaveConfig(configData map[string]interface{}) error {
+	if token, ok := configData["token"].(string); ok && token != "" {
+		a.config.Token = token
+		a.deepseekClient.SetToken(token)
+	}
+
+	if interval, ok := configData["auto_refresh_interval"].(float64); ok {
+		a.config.AutoRefreshInterval = int(interval)
+	}
+
+	if sectionVisible, ok := configData["section_visible"].(map[string]interface{}); ok {
+		if a.config.SectionVisible == nil {
+			a.config.SectionVisible = make(map[string]bool)
+		}
+		for key, value := range sectionVisible {
+			if v, ok := value.(bool); ok {
+				a.config.SectionVisible[key] = v
+			}
+		}
+	}
+
+	a.config.Save()
+	return nil
+}
