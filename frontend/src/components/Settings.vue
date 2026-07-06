@@ -11,7 +11,7 @@
         <div class="token-input">
           <input
             v-model="token"
-            type="password"
+            :type="showToken ? 'text' : 'password'"
             placeholder="sk-..."
             @keyup.enter="saveToken"
           />
@@ -38,6 +38,18 @@
       </div>
     </div>
 
+    <!-- 主题设置 -->
+    <div class="settings-section">
+      <h3>主题</h3>
+      <div class="form-group">
+        <label>外观模式</label>
+        <select v-model="theme" @change="updateTheme">
+          <option value="light">浅色模式</option>
+          <option value="dark">深色模式</option>
+        </select>
+      </div>
+    </div>
+
     <!-- 版本信息 -->
     <div class="settings-section">
       <h3>关于</h3>
@@ -60,24 +72,43 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useAppStore } from '@/stores/useAppStore'
 import { useDataStore } from '@/stores/useDataStore'
 import { api } from '@/api/backend'
 
 const appStore = useAppStore()
-const token = ref('')
+
+// 用computed动态绑定appStore的值，保持响应式
+const token = computed({
+  get: () => appStore.token,
+  set: (val) => {
+    appStore.token = val
+  }
+})
+
+const autoRefreshInterval = computed({
+  get: () => appStore.autoRefreshInterval || 0,
+  set: (val) => {
+    appStore.autoRefreshInterval = val
+  }
+})
+
+const theme = computed({
+  get: () => appStore.theme,
+  set: (val) => {
+    appStore.theme = val as 'light' | 'dark'
+    document.documentElement.style.colorScheme = val
+  }
+})
+
 const showToken = ref(false)
-const autoRefreshInterval = ref(0)
 const appVersion = ref('1.0.0')
 const latestVersion = ref('')
 const hasUpdate = ref(false)
 const message = ref<{ type: 'success' | 'error'; text: string } | null>(null)
 
 onMounted(async () => {
-  token.value = appStore.token
-  autoRefreshInterval.value = appStore.autoRefreshInterval || 0
-
   try {
     const version = await api.getVersion()
     appVersion.value = version
@@ -93,14 +124,15 @@ const toggleShowToken = () => {
 }
 
 const saveToken = async () => {
-  if (!token.value) {
+  if (!appStore.token) {
     showMessage('error', '请输入 Token')
     return
   }
 
   try {
-    await api.updateToken(token.value)
-    appStore.token = token.value
+    await api.updateToken(appStore.token)
+    // 主动更新localStorage（触发store的持久化）
+    localStorage.setItem('app_token', appStore.token)
     showMessage('success', 'Token 保存成功')
     // 保存Token后刷新仪表盘数据
     const dataStore = useDataStore()
@@ -113,13 +145,17 @@ const saveToken = async () => {
 
 const updateAutoRefresh = async () => {
   try {
-    await api.setAutoRefresh(autoRefreshInterval.value)
-    appStore.autoRefreshInterval = autoRefreshInterval.value
+    await api.setAutoRefresh(appStore.autoRefreshInterval)
     showMessage('success', '自动刷新已更新')
   } catch (error) {
     showMessage('error', '更新自动刷新失败')
     console.error('Failed to update auto refresh:', error)
   }
+}
+
+const updateTheme = () => {
+  document.documentElement.style.colorScheme = appStore.theme
+  showMessage('success', `已切换为${appStore.theme === 'dark' ? '深色' : '浅色'}模式`)
 }
 
 const checkUpdate = async () => {

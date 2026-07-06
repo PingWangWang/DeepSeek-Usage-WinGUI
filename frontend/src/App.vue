@@ -2,8 +2,14 @@
   <div class="app" :style="{ colorScheme: appStore.theme }">
     <Header ref="headerRef" />
     <main class="main-content">
-      <Dashboard v-if="headerRef?.currentView === 'dashboard'" />
-      <Settings v-else-if="headerRef?.currentView === 'settings'" />
+      <!-- 等待初始化完成 -->
+      <div v-if="!appInitialized" class="loading">
+        <p>📦 初始化中...</p>
+      </div>
+      <template v-else>
+        <Dashboard v-if="headerRef?.currentView === 'dashboard'" />
+        <Settings v-else-if="headerRef?.currentView === 'settings'" />
+      </template>
     </main>
     <Footer />
   </div>
@@ -19,11 +25,15 @@ import { useAppStore } from './stores/useAppStore'
 
 const appStore = useAppStore()
 const headerRef = ref<InstanceType<typeof Header> | null>(null)
+const appInitialized = ref(false)
 
-onMounted(() => {
-  appStore.init()
-  // 设置系统主题
-  if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+onMounted(async () => {
+  await appStore.init()
+  appInitialized.value = true
+
+  // 仅在没有保存主题时才根据系统偏好设置主题
+  const savedTheme = localStorage.getItem('app_theme')
+  if (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
     appStore.theme = 'dark'
   }
 })
@@ -46,6 +56,19 @@ onMounted(() => {
   flex: 1;
   overflow-y: auto;
   padding: 20px;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 16px;
+  color: #666;
+}
+
+:dark .loading {
+  color: #999;
 }
 </style>
 

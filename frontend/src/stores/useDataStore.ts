@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import * as App from '@/../../wailsjs/go/backend/App'
 
 export interface DashboardData {
   period: string
@@ -55,16 +56,17 @@ export const useDataStore = defineStore('data', () => {
     loading.value = true
     error.value = null
     try {
-      // 检查Wails绑定是否可用
-      if (!window.go?.main?.App?.GetDashboard) {
-        throw new Error('Wails binding not available')
+      const response = await App.GetDashboard(period)
+      if (!response) {
+        throw new Error('从后端获取数据失败：服务返回空值')
       }
-      const response = await window.go.main.App.GetDashboard(period)
       data.value = response
+      error.value = null
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Unknown error'
       error.value = errorMsg
       console.error('Failed to fetch dashboard:', err)
+      data.value = null
     } finally {
       loading.value = false
     }

@@ -166,10 +166,25 @@ func (a *App) UpdateToken(token string) error {
 
 // GetConfig 获取完整配置（用于前端恢复状态）
 func (a *App) GetConfig() map[string]interface{} {
+	if a.config == nil {
+		return map[string]interface{}{
+			"token":                 "",
+			"auto_refresh_interval": 0,
+			"theme":                 "light",
+			"section_visible": map[string]bool{
+				"requests":   true,
+				"tokens":     true,
+				"cacheRate":  true,
+				"composition": true,
+				"models":     true,
+			},
+		}
+	}
+
 	return map[string]interface{}{
 		"token":                 a.config.Token,
 		"auto_refresh_interval": a.config.AutoRefreshInterval,
-		"theme":                 "light", // 主题由前端管理，这里返回默认值
+		"theme":                 "light", // 主题由前端localStorage管理
 		"section_visible":       a.config.SectionVisible,
 	}
 }
@@ -184,6 +199,8 @@ func (a *App) SaveConfig(configData map[string]interface{}) error {
 	if interval, ok := configData["auto_refresh_interval"].(float64); ok {
 		a.config.AutoRefreshInterval = int(interval)
 	}
+
+	// 注：主题（theme）由前端localStorage单独管理，不在后端保存
 
 	if sectionVisible, ok := configData["section_visible"].(map[string]interface{}); ok {
 		if a.config.SectionVisible == nil {

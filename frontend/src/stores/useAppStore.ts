@@ -1,5 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
+import * as App from '@/../../wailsjs/go/backend/App'
+
+let tokenSaveTimer: ReturnType<typeof setTimeout> | null = null
+let intervalSaveTimer: ReturnType<typeof setTimeout> | null = null
+let visibilitySaveTimer: ReturnType<typeof setTimeout> | null = null
 
 export const useAppStore = defineStore('app', () => {
   // 应用状态
@@ -20,14 +25,7 @@ export const useAppStore = defineStore('app', () => {
   // 初始化：从后端恢复配置
   const init = async () => {
     try {
-      // 检查window.go是否可用
-      if (!window.go?.main?.App?.GetConfig) {
-        console.warn('Wails binding not ready, using localStorage fallback')
-        loadFromLocalStorage()
-        return
-      }
-
-      const config = await window.go.main.App.GetConfig()
+      const config = await App.GetConfig()
       if (config) {
         token.value = config.token || ''
         autoRefreshInterval.value = config.auto_refresh_interval || 0
@@ -65,54 +63,70 @@ export const useAppStore = defineStore('app', () => {
   // 计算属性
   const isDark = computed(() => theme.value === 'dark')
 
-  // 监听配置变化，自动持久化
+  // 监听Token变化，防抖保存
   watch(() => token.value, async (newToken) => {
     localStorage.setItem('app_token', newToken)
-    try {
-      if (window.go?.main?.App?.SaveConfig) {
-        await window.go.main.App.SaveConfig({
+    if (tokenSaveTimer) clearTimeout(tokenSaveTimer)
+    tokenSaveTimer = setTimeout(async () => {
+      try {
+        await App.SaveConfig({
           token: newToken,
           auto_refresh_interval: autoRefreshInterval.value,
           section_visible: sectionVisible.value,
         })
+      } catch (error) {
+        console.warn('Failed to save token to backend, using localStorage fallback:', error)
       }
-    } catch (error) {
-      console.error('Failed to save token to backend:', error)
-    }
+    }, 300)
   })
 
+  // 监听自动刷新间隔变化，防抖保存
   watch(() => autoRefreshInterval.value, async (newInterval) => {
     localStorage.setItem('app_auto_refresh_interval', newInterval.toString())
-    try {
-      if (window.go?.main?.App?.SaveConfig) {
-        await window.go.main.App.SaveConfig({
+    if (intervalSaveTimer) clearTimeout(intervalSaveTimer)
+    intervalSaveTimer = setTimeout(async () => {
+      try {
+        await App.SaveConfig({
           token: token.value,
           auto_refresh_interval: newInterval,
           section_visible: sectionVisible.value,
         })
+      } catch (error) {
+        console.warn('Failed to save auto refresh interval to backend, using localStorage fallback:', error)
       }
+    }, 300)
+  })
+
+  // 监听主题变化，同步到localStorage和后端
+  watch(() => theme.value, async (newTheme) => {
+    localStorage.setItem('app_theme', newTheme)
+    try {
+      await App.SaveConfig({
+        token: token.value,
+        auto_refresh_interval: autoRefreshInterval.value,
+        section_visible: sectionVisible.value,
+        theme: newTheme,
+      })
     } catch (error) {
-      console.error('Failed to save auto refresh interval to backend:', error)
+      console.warn('Failed to save theme to backend, using localStorage fallback:', error)
     }
   })
 
-  watch(() => theme.value, (newTheme) => {
-    localStorage.setItem('app_theme', newTheme)
-  })
-
+  // 监听UI可见性变化，防抖保存
   watch(() => sectionVisible.value, async (newVisible) => {
     localStorage.setItem('app_section_visible', JSON.stringify(newVisible))
-    try {
-      if (window.go?.main?.App?.SaveConfig) {
-        await window.go.main.App.SaveConfig({
+    if (visibilitySaveTimer) clearTimeout(visibilitySaveTimer)
+    visibilitySaveTimer = setTimeout(async () => {
+      try {
+        await App.SaveConfig({
           token: token.value,
           auto_refresh_interval: autoRefreshInterval.value,
           section_visible: newVisible,
         })
+      } catch (error) {
+        console.warn('Failed to save section visibility to backend, using localStorage fallback:', error)
       }
-    } catch (error) {
-      console.error('Failed to save section visibility to backend:', error)
-    }
+    }, 300)
   }, { deep: true })
 
   return {
