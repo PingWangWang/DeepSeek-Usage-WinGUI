@@ -1,0 +1,27 @@
+{
+  "name": "DeepSeek-Usage",
+  "type": "desktop",
+  "bin": "frontend/dist",
+  "author": {
+    "name": "PingWangWang"
+  },
+  "info": {
+    "productName": "DeepSeek Usage+",
+    "productVersion": "1.0.0",
+    "companyName": "PingWangWang",
+    "fileVersion": "1.0.0.0"
+  },
+  "frontend": "frontend",
+  "frontend:dev:serverUrl": "http://localhost:5173",
+  "backend": "backend",
+  "build": {
+    "android": {
+      "androidNDKPath": "/home/user/android-ndk"
+    },
+    "devTools": "firebug",
+    "dir": "../frontend/dist",
+    "platform": "windows",
+    "arch": "amd64",
+    "outputType": "desktop"
+  }
+}
